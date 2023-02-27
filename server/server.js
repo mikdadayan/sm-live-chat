@@ -24,11 +24,15 @@ app.use(
 const typeDefs = fs.readFileSync("./schema.graphql", { encoding: "utf8" });
 const resolvers = require("./resolvers");
 
-function context({ req }) {
+function context({ req, connection }) {
   if (req && req.user) {
     return { userId: req.user.sub };
   }
-  return {};
+  if (connection && connection.context && connection.context.accessToken) {
+    const decoded = jwt.verify(connection.context.accessToken, jwtSecret);
+    console.log(decoded);
+    return { userId: decoded.sub };
+  }
 }
 
 const apolloServer = new ApolloServer({ typeDefs, resolvers, context });
