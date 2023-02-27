@@ -10,7 +10,7 @@ import { getMainDefinition } from "apollo-utilities";
 import { getAccessToken } from "../auth";
 
 const httpUrl = "http://localhost:9000/graphql";
-const wsUrl = "wss://localhost:9000/graphql";
+const wsUrl = "ws://localhost:9000/graphql";
 
 const httpLink = ApolloLink.from([
   new ApolloLink((operation, forward) => {
@@ -31,8 +31,8 @@ const wsLink = new WebSocketLink({
   },
 });
 
-const isSubscription = (operation) => {
-  const definition = getMainDefinition(operation);
+const isSubscription = ({ query }) => {
+  const definition = getMainDefinition(query);
   return (
     definition.kind === "OperationDefinition" &&
     definition.operation === "subscription"
@@ -41,7 +41,7 @@ const isSubscription = (operation) => {
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
-  link: split(isSubscription) ? wsLink : httpLink,
+  link: split(isSubscription, wsLink, httpLink),
   defaultOptions: { query: { fetchPolicy: "no-cache" } },
 });
 
